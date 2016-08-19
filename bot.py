@@ -4,6 +4,7 @@ import os
 import shutil
 from random import randrange
 import time
+import schedule
 
 
 bot = telebot.TeleBot(conf.token)
@@ -40,7 +41,10 @@ def main():
     move_file_to_sent(image_file)
     time.sleep(2)
 
+schedule.every(2).hours.do(main)
+#   schedule.every(2).minutes.do(main)
+
 if __name__ == '__main__':
     while 1:
-        main()
-        time.sleep(conf.hours_wait * 3600)
+        schedule.run_pending()
+        time.sleep(1)
