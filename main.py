@@ -5,10 +5,25 @@ from shutil import move
 from random import randrange
 import datetime
 import logging
+import time
+import re
 
 bot = telebot.TeleBot(config.telegram_token)
 logging.basicConfig(format = u'%(filename) s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s',
-                    level = logging.ERROR, filename="bot.log")
+                    level = logging.ERROR, filename=u'bot.log')
+
+
+def try_send_message(channel_name, text):
+    try:
+        bot.send_message(channel_name, text=text)
+    except telebot.apihelper.ApiException as e:
+        logging.error(u"API Error:" + str(e))
+        error_code = re.findall(r"\d\d\d", str(e.result))[0]
+        if error_code == 500 or error_code == 502:
+                logging.warning(u"Trying one more time request " + e.function_name)
+                time.sleep(config.repeat_request_timeout)
+                bot.send_message(channel_name, text=text)
+
 
 def get_img_list(folder='./'):
     _filelist=[]
@@ -18,24 +33,36 @@ def get_img_list(folder='./'):
             _filelist.append(filelist[i])
     return _filelist
 
+
 def get_random_file(filelist, folder='./', ):
     filenum = randrange(0, len(filelist))
     filepath = folder + '/' + filelist[filenum]
     return filepath
 
+
 def check_file_count(list):
     if len(list) <= 5:
         response = len(list)
         response_msg = u"Осталось изображений: " + str(response)
-        bot.send_message(config.alarm_channel_name, text=response_msg)
+        try_send_message(config.alarm_channel_name, text=response_msg)
     else:
         response = len(list)
     return response
 
+
 def post_img_to_channel(channel_id, filename):
     img = open(filename, 'rb')
-    bot.send_photo(channel_id, img)
+    try:
+        bot.send_photo(channel_id, img)
+    except telebot.apihelper.ApiException as e:
+        logging.error(u"API Error:" + str(e))
+        error_code = re.findall(r"\d\d\d", str(e.result))[0]
+        if error_code == 500 or error_code == 502:
+                logging.warning(u"Trying one more time request " + e.function_name)
+                time.sleep(config.repeat_request_timeout)
+                bot.send_photo(channel_id, img)
     return 0
+
 
 def move_file(file, sent_dir):
     new_name = get_timestamp()
@@ -45,6 +72,7 @@ def move_file(file, sent_dir):
     os.rename(file, file_path +'/'+ new_name)
     move(file_path +'/'+ new_name, sent_dir)
     return 0
+
 
 def get_timestamp():
         now = datetime.datetime.now()
@@ -60,16 +88,21 @@ def get_timestamp():
             return year+month+day+hour+minute
 
 
-if __name__ == "__main__":
-    img_folder = config.img_dir
-    img_list = get_img_list(img_folder)
+def main(folder):
+    img_list = get_img_list(folder)
     number_of_files = check_file_count(img_list)
     if number_of_files != 0:
-        file_path = get_random_file(img_list, img_folder)
+        file_path = get_random_file(img_list, folder)
+        try_send_message(config.alarm_channel_name, text = file_path)
         post_img_to_channel(config.main_channel_name, file_path)
         post_img_to_channel(config.private_channel_name, file_path)
+        #logging.error(filepath)
         if config.Debug == True:
             print(file_path)
         move_file(file_path, config.img_sent_dir)
     else:
         logging.error(u"There no images!")
+
+
+if __name__ == "__main__":
+    main(config.img_dir)
