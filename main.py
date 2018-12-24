@@ -58,7 +58,9 @@ def post_img_to_channel(channel_id, filename):
         logging.error(u"API Error:" + str(e))
         error_code = re.findall(r"\d\d\d", str(e.result))[0]
         if error_code == 500 or error_code == 502:
-                logging.warning(u"Trying one more time request " + e.function_name)
+                error_msg = u"Trying one more time request " + e.function_name + ". Error:" + error_code
+                logging.warning(error_msg)
+                try_send_message(config.alarm_channel_name, error_msg)
                 time.sleep(config.repeat_request_timeout)
                 bot.send_photo(channel_id, img)
     return 0
