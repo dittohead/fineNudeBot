@@ -8,4 +8,5 @@ img_dir = "botimg/" #dont forget change ./ path to abs path for cron
 img_sent_dir = "botimg/sent"
 #---------------------------
 Debug = True
+repeat_request_timeout = 20 #seconds
 #---------------------------
