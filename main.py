@@ -94,7 +94,7 @@ def main(folder):
         post_img_to_channel(config.private_channel_name, file_path)
         #logging.error(filepath)
         if config.Debug == True:
-            print(file_path)
+            logging.info(file_path)
         move_file(file_path, config.img_sent_dir)
     else:
         logging.error(u"There no images!")
