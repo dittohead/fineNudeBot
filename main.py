@@ -77,17 +77,11 @@ def move_file(file, sent_dir):
 
 
 def get_timestamp():
-        now = datetime.datetime.now()
-        year = str(now.year)
-        month = str(now.month)
-        day = str(now.day)
-        hour = str (now.hour)
-        minute = str(now.minute)
-        if config.Debug == True:
-            second = str(now.second)
-            return year+month+day+hour+minute+second
-        else:
-            return year+month+day+hour+minute
+    now = datetime.datetime.now()
+    if Debug:
+        return now.strftime("%Y%m%d%H%M%S")
+    else:
+        return now.strftime("%Y%m%d%H%M")
 
 
 def main(folder):
