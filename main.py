@@ -78,7 +78,7 @@ def move_file(file, sent_dir):
 
 def get_timestamp():
     now = datetime.datetime.now()
-    if Debug:
+    if config.Debug:
         return now.strftime("%Y%m%d%H%M%S")
     else:
         return now.strftime("%Y%m%d%H%M")
